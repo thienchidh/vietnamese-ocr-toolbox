@@ -58,8 +58,8 @@ There are two stages (can also run in second stage only):
 
 | | | |
 |:-------------------------:|:-------------------------:|:-------------------------:|
-|<img height="400" alt="screen" src="demo/data samples/mcocr_public_145013atlmq.jpg"> | <img width="400" alt="screen" src="demo/data samples/mcocr_public_145013bcovr.jpg"> | <img height="400" alt="screen" src="demo/data samples/mcocr_public_145014ckynq.jpg"> |
-|<img  alt="screen" src="demo/data samples/sroie19_1.png"> | <img  alt="screen" src="demo/data samples/sroie19_2.png"> | <img  alt="screen" src="demo/data samples/sroie19_3.jpg"> |
+|<img height="400" alt="screen" src="demo/data_samples/mcocr_public_145013atlmq.jpg"> | <img width="400" alt="screen" src="demo/data_samples/mcocr_public_145013bcovr.jpg"> | <img height="400" alt="screen" src="demo/data_samples/mcocr_public_145014ckynq.jpg"> |
+|<img  alt="screen" src="demo/data_samples/sroie19_1.png"> | <img  alt="screen" src="demo/data_samples/sroie19_2.png"> | <img  alt="screen" src="demo/data_samples/sroie19_3.jpg"> |
 
 ## **Pretrained weights**
 - Pretrained PAN weights on SROIE19:

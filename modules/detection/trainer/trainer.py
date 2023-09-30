@@ -9,7 +9,6 @@ import traceback
 import time
 from tqdm import tqdm
 import torch
-import torchvision.utils as vutils
 from torchvision import transforms
 from ..metrics import runningScore, cal_text_score, cal_kernel_score, cal_recall_precison_f1
 from ..base import BaseTrainer
@@ -18,14 +17,14 @@ from ..predict import PAN
 class Trainer(BaseTrainer):
     def __init__(self, args, config, model, criterion, train_loader, val_loader, metric, weights_init=None):
         super(Trainer, self).__init__(args, config, model, criterion, metric, weights_init)
-        
+
         self.show_images_interval = args.val_interval
         self.save_interval = args.save_interval
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.train_loader_len = len(train_loader)
         self.val_loader_len = len(val_loader)
-        
+
         self.logger.info('train dataset has {} samples,{} in dataloader'.format(self.train_loader.dataset_len,
                                                                                 self.train_loader_len))
 
@@ -88,7 +87,7 @@ class Trainer(BaseTrainer):
             if (i + 1) % self.save_interval == 0:
                 net_save_path = f"{self.checkpoint_dir}/PANNet_last.pth"
                 self._save_checkpoint(epoch, net_save_path, save_best=False)
-            
+
             # write tensorboard
             self.writer.add_scalar('TRAIN/LOSS/loss_all', loss_all, self.global_step)
             self.writer.add_scalar('TRAIN/LOSS/loss_tex', loss_tex, self.global_step)
@@ -99,7 +98,7 @@ class Trainer(BaseTrainer):
             self.writer.add_scalar('TRAIN/ACC_IOU/iou_text', iou_text, self.global_step)
             self.writer.add_scalar('TRAIN/ACC_IOU/iou_kernel', iou_kernel, self.global_step)
             self.writer.add_scalar('TRAIN/lr', lr, self.global_step)
-            
+
             if (i + 1) % self.save_interval == 0:
                 # show images on tensorboard
                 self.writer.add_images('TRAIN/imgs', images, self.global_step)
@@ -133,23 +132,23 @@ class Trainer(BaseTrainer):
         iou_kernel = 0.
         running_metric_text = runningScore(2)
         running_metric_kernel = runningScore(2)
-        
+
         epoch_start = time.time()
 
         model = PAN(self.config, state_dict=self.model.state_dict())
-        self.metric.update(model)    
+        self.metric.update(model)
         metric_dict = self.metric.value()
         model = None
 
         with torch.no_grad():
             for i, (images, labels, training_masks) in enumerate(tqdm(self.val_loader)):
-                
+
                 images, labels, training_masks = images.to(self.device), labels.to(self.device), training_masks.to(
                     self.device)
 
                 preds = self.model(images)
                 loss_all, loss_tex, loss_ker, loss_agg, loss_dis = self.criterion(preds, labels, training_masks)
-            
+
                 # acc iou
                 score_text = cal_text_score(preds[:, 0, :, :], labels[:, 0, :, :], training_masks, running_metric_text)
                 score_kernel = cal_kernel_score(preds[:, 1, :, :], labels[:, 1, :, :], labels[:, 0, :, :], training_masks,
@@ -170,7 +169,7 @@ class Trainer(BaseTrainer):
         self.logger.info(
             '[{}/{}],  val_acc: {:.4f}, val_iou_text: {:.4f}, val_iou_kernel: {:.4f}, val_loss_all: {:.4f}, time:{:.2f}'.format(
                 epoch, self.epochs, acc, iou_text, iou_kernel, loss_all, epoch_end-epoch_start))
-        
+
         if acc>self.best_acc:
             self.best_acc=acc
             net_save_path = f"{self.checkpoint_dir}/PANNet_best_acc.pth"
@@ -179,7 +178,7 @@ class Trainer(BaseTrainer):
             self.best_map=metric_dict['MAP']
             net_save_path = f"{self.checkpoint_dir}/PANNet_best_map.pth"
             self._save_checkpoint(epoch, net_save_path, save_best=False)
-            
+
         return acc, iou_text, iou_kernel
 
 

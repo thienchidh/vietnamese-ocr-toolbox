@@ -44,12 +44,13 @@ def createDataset(outputPath, root_dir, annotation_path):
         annotations = [l.strip().split('\t') for l in lines]
 
     nSamples = len(annotations)
-    env = lmdb.open(outputPath, map_size=1099511627776)
+    map_size = 50 * 1024 * 1024 * 1024 # 50 GB
+    env = lmdb.open(outputPath, map_size=map_size)
     cache = {}
     cnt = 0
     error = 0
-    
-    pbar = tqdm(range(nSamples), ncols = 100, desc='Create {}'.format(outputPath)) 
+
+    pbar = tqdm(range(nSamples), ncols = 100, desc='Create {}'.format(outputPath))
     for i in pbar:
         imageFile, label = annotations[i]
         imagePath = os.path.join(root_dir, imageFile)
@@ -57,7 +58,7 @@ def createDataset(outputPath, root_dir, annotation_path):
         if not os.path.exists(imagePath):
             error += 1
             continue
-        
+
         with open(imagePath, 'rb') as f:
             imageBin = f.read()
         isvalid, imgH, imgW = checkImageIsValid(imageBin)

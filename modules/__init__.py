@@ -13,7 +13,7 @@ import modules.detection as detection
 import modules.ocr as ocr
 import modules.retrieval as retrieval
 import modules.correction as correction
-from tool.config import Config 
+from tool.config import Config
 from tool.utils import download_pretrained_weights
 
 
@@ -21,11 +21,11 @@ CACHE_DIR = '.cache'
 
 class Preprocess:
     def __init__(
-        self, 
+        self,
         find_best_rotation=True,
         det_model=None,
         ocr_model=None):
-        
+
         self.find_best_rotation = find_best_rotation
 
         if self.find_best_rotation:
@@ -38,10 +38,10 @@ class Preprocess:
         self.scanner = DocScanner()
 
     def __call__(self, image, return_score=False):
-        
+
 
         output = self.scanner.scan(image)
-        
+
         if self.find_best_rotation:
 
             _ = self.det_model(
@@ -64,7 +64,7 @@ class Preprocess:
 
             # Rotate the original image
             output = ocr.rotate_img(output, best_orient)
-        
+
         if return_score:
             return output, orientation_scores
         else:
@@ -83,14 +83,14 @@ class Detection:
             download_pretrained_weights(self.model_name, cached=tmp_path)
             weight_path = tmp_path
         self.model = detection.PAN(config, model_path=weight_path)
-        
+
     def __call__(
-        self, 
+        self,
         image,
         crop_region=False,
         return_result=False,
         output_path=None):
-        
+
         """
         Input: path to image
         Output: boxes (coordinates of 4 points)
@@ -104,16 +104,16 @@ class Detection:
                 shutil.rmtree(output_path)
                 os.mkdir(output_path)
 
-            
+
         # Detect and OCR for final result
         _, boxes_list, _ = self.model.predict(
-            image, 
-            output_path, 
+            image,
+            output_path,
             crop_region=crop_region)
 
         if return_result:
             img = detection.draw_bbox(image, boxes_list)
-        
+
         if return_result:
             return boxes_list, img
         else:
@@ -127,7 +127,7 @@ class OCR:
         ocr_config = ocr.Config.load_config_from_name(config.model_name)
         ocr_config['cnn']['pretrained']=False
         ocr_config['device'] = 'cuda:0'
-        ocr_config['predictor']['beamsearch']=False
+        ocr_config['predictor']['beamsearch']=True
 
         self.model_name = model_name
         if weight_path is None:
@@ -247,7 +247,7 @@ class Retrieval:
         preds, probs = self.ensemble(df)
         return preds, probs
 
-        
+
 class Correction:
     def __init__(self, dictionary=None, mode="ed"):
         assert mode in ["trie", "ed"], "Mode is not supported"
@@ -261,12 +261,12 @@ class Correction:
             self.use_trie = True
         if self.mode == 'ed':
             self.use_ed = True
-        
+
         if self.use_ed:
             self.ed = correction.get_heuristic_correction('diff')
         if self.use_trie:
             self.trie = correction.get_heuristic_correction('trie')
-        
+
         if self.use_ed or self.use_trie:
             if self.dictionary is None:
                 self.dictionary = {}
@@ -277,10 +277,10 @@ class Correction:
     def __call__(self, query_texts, return_score=False):
         if self.use_ed:
             preds, score = self.ed(query_texts, self.dictionary)
-            
+
         if self.use_trie:
             preds, score = self.trie(query_texts, self.dictionary)
-        
+
         if return_score:
             return preds, score
         else:

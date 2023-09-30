@@ -2,9 +2,9 @@
 
 
 project_name: "mcocr"
-data_root: "data/ocr_data/"
-train_annotation: "train_annotation.txt"
-valid_annotation: "val_annotation.txt"
+data_root: "data/"
+train_annotation: "train_line_annotation.txt"
+valid_annotation: "test_line_annotation.txt"
 data_export: "./data"
 
 print_every: 100

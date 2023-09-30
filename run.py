@@ -1,16 +1,13 @@
-import os
-import cv2
 import argparse
-import torch
-import numpy as np
-import pandas as pd
-from PIL import Image
-import matplotlib.pyplot as plt
-import matplotlib
-from modules import Preprocess, Detection, OCR, Retrieval, Correction
-from tool.config import Config 
-from tool.utils import natural_keys, visualize, find_highest_score_each_class
+import os
 import time
+
+import cv2
+import pandas as pd
+
+from modules import Preprocess, Detection, OCR, Retrieval, Correction
+from tool.config import Config
+from tool.utils import natural_keys, visualize, find_highest_score_each_class
 
 parser = argparse.ArgumentParser("Document Extraction")
 parser.add_argument("--input", help="Path to single image to be scanned")
@@ -30,7 +27,7 @@ class Pipeline:
         self.load_config(config)
         self.make_cache_folder()
         self.init_modules()
-        
+
 
     def load_config(self, config):
         self.det_weight = config.det_weight
@@ -64,7 +61,7 @@ class Pipeline:
             det_model=self.det_model,
             ocr_model=self.ocr_model,
             find_best_rotation=self.find_best_rotation)
-  
+
         if self.dictionary_path is not None:
             self.dictionary = {}
             df = pd.read_csv(self.dictionary_path)
@@ -109,20 +106,21 @@ class Pipeline:
         img_paths=os.listdir(self.crop_cache)
         img_paths.sort(key=natural_keys)
         img_paths = [os.path.join(self.crop_cache, i) for i in img_paths]
-        
+
         texts = self.ocr_model.predict_folder(img_paths, return_probs=False)
+        print('OCR result: ', texts)
         texts = self.correction(texts, return_score=False)
-        
+
         if self.do_retrieve:
             preds, probs = self.retrieval(texts)
         else:
             preds, probs = None, None
 
         visualize(
-          img1, boxes, texts, 
-          img_name = self.final_output, 
+          img1, boxes, texts,
+          img_name = self.final_output,
           class_mapping = self.class_mapping,
-          labels = preds, probs = probs, 
+          labels = preds, probs = probs,
           visualize_best=self.do_retrieve)
 
         if self.do_retrieve:

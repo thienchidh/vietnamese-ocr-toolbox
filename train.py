@@ -1,11 +1,11 @@
-import os
-from ocr.tool.config import Cfg
-from ocr.model.trainer import Trainer
-from ocr.tool.predictor import Predictor
+import traceback
+
+from modules.ocr.model.trainer import Trainer
+from modules.ocr.tool.config import Cfg
 from tool.config import Config
 
-
 if __name__ == '__main__':
+    print("Training started!")
     config = Config("tool/config/ocr/configs.yaml")
 
     model_config = Cfg.load_config_from_name(config.model_name)
@@ -15,6 +15,7 @@ if __name__ == '__main__':
         "data_root": config.data_root,
         "train_annotation": config.train_annotation,
         "valid_annotation": config.valid_annotation,
+        "export": './data'
     }
 
     params = {
@@ -27,6 +28,8 @@ if __name__ == '__main__':
     model_config["trainer"].update(params)
     model_config["dataset"].update(dataset_params)
     model_config["device"] = config.gpu_devices
+    model_config['dataloader']['num_workers'] = 35
 
     trainer = Trainer(model_config, pretrained=True)
     trainer.train()
+    print("Training finished!")

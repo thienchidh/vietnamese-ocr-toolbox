@@ -28,7 +28,8 @@ if __name__ == '__main__':
     model_config["trainer"].update(params)
     model_config["dataset"].update(dataset_params)
     model_config["device"] = config.gpu_devices
-    model_config['dataloader']['num_workers'] = 35
+    # model_config['dataloader']['num_workers'] = 3
+    # model_config['dataloader']['num_workers'] = 0
 
     trainer = Trainer(model_config, pretrained=True)
     trainer.train()

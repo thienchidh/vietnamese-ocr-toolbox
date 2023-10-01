@@ -58,7 +58,11 @@ class Trainer():
             self.logger = Logger(logger)
 
         if pretrained:
-            weight_file = download_weights(config['pretrain'], quiet=config['quiet'])
+            # if is relative path
+            if '/' in config['pretrain'] or '\\' in config['pretrain'] or '.' in config['pretrain']:
+                weight_file = config['pretrain']
+            else:
+                weight_file = download_weights(config['pretrain'], quiet=config['quiet'])
             self.load_weights(weight_file)
 
         self.iter = 0
@@ -75,13 +79,14 @@ class Trainer():
 
         transforms = None
         if self.image_aug:
-            transforms =  augmentor
+            transforms = augmentor
 
         self.train_gen = self.data_gen(os.path.join(self.dataset_export, 'train_{}'.format(self.dataset_name)),
-                self.data_root, self.train_annotation, self.masked_language_model, transform=transforms)
+                                       self.data_root, self.train_annotation, self.masked_language_model,
+                                       transform=transforms)
         if self.valid_annotation:
             self.valid_gen = self.data_gen(os.path.join(self.dataset_export, 'valid_{}'.format(self.dataset_name)),
-                    self.data_root, self.valid_annotation, masked_language_model=False)
+                                           self.data_root, self.valid_annotation, masked_language_model=False)
 
         self.train_losses = []
 
@@ -147,7 +152,7 @@ class Trainer():
             for step, batch in enumerate(self.valid_gen):
                 batch = self.batch_to_device(batch)
                 img, tgt_input, tgt_output, tgt_padding_mask = batch['img'], batch['tgt_input'], batch['tgt_output'], \
-                batch['tgt_padding_mask']
+                    batch['tgt_padding_mask']
 
                 outputs = self.model(img, tgt_input, tgt_padding_mask)
                 #                loss = self.criterion(rearrange(outputs, 'b t v -> (b t) v'), rearrange(tgt_output, 'b o -> (b o)'))

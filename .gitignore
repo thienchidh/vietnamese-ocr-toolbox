@@ -113,3 +113,5 @@ output/
 results/
 weights/
 **.pth
+data/
+dataset/
